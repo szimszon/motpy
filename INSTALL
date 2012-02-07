@@ -1,0 +1,92 @@
++----------------------------------------+
+| MOTP http://motp.sourceforge.net/      |
+|                                        |
+| pam_exec.so a python solution by       |
+|   szimszon at oregpreshaz.eu           |
+| web: https://github.com/szimszon/motpy |
++----------------------------------------+
+
+NO WARRANTY! I'm not a security expert! 
+
+License: http://www.gnu.org/licenses/gpl-3.0.txt
+
+= Installation =
+
+== Get the code ==
+
+You could clone the git repo:
+
+# git clone git://github.com/szimszon/motpy.git
+# cd motpy
+
+Or get the latest zip from:
+
+https://github.com/szimszon/motpy/zipball/master
+
+Unzip it and change dir to motpy.
+
+== Copying files ==
+
+Copy motpy script to /usr/local/sbin
+
+# cp motpy /usr/local/sbin
+
+Copy the backend module to python dist-package
+
+like in ubuntu 11.10
+# cp homedir.py /usr/local/lib/python2.7/dist-packages/
+
+If you have a debian based system then you probable have a /usr/share/pam-configs/
+directory. You could copy the pam-configs-motpy to it like:
+
+# cp pam-configs-motpy /usr/share/pam-configs/motpy
+
+Copy the config file motpy.conf to /etc/security:
+
+# cp motpy.conf /etc/security
+
+You should change the salt= line to something other. But you have to type 16, 24
+or 32 character!
+
+Now the system is half installed.
+
+== Set up the user pin and secret ==
+
+Execute the following:
+
+# motpy -i [username]
+
+If you omit the username than the current user's pin and secrec is set up.
+
+== Config the pam ==
+
+If you have pam-auth-update and you copied the pam-configs-motpy already you can
+just run
+
+# pam-auth-update
+
+If you config pam manually then you could put in auth section in pam file:
+
+-- cut --
+# If motp is sufficient
+auth   sufficient      pam_exec.so expose_authtok debug /usr/local/sbin/motpy
+-- cut --
+
+or 
+
+-- cut --
+# If motp is required
+auth   required      pam_exec.so expose_authtok debug /usr/local/sbin/motpy
+-- cut --
+
+Now are almost done.
+
+You should test the config before drop the last privileged session :)
+
+Now you are done.
+
+Thanks for makeing motp so easy to implement!
+
+Have a nice day.
+
+If there is a question you could send it to szimszon at oregpreshaz.eu

@@ -1,0 +1,51 @@
++----------------------------------------+
+| MOTP http://motp.sourceforge.net/      |
+|                                        |
+| pam_exec.so a python solution by       |
+|   szimszon at oregpreshaz.eu           |
+| web: https://github.com/szimszon/motpy |
++----------------------------------------+
+
+NO WARRANTY! I'm not a security expert!
+
+License: http://www.gnu.org/licenses/gpl-3.0.txt
+
+= Readme / FAQ =
+
+== What it is? ==
+
+It's a modular Mobile-One Time Password authentication system for linux PAM
+systems.
+
+== How is it work? ==
+
+motpy is a skeleton script which do the OTP validating and provides a solution
+for user information management.
+
+motpy imports a backend python module to get and store the user informations to
+do the OTP validation.
+
+You can easily create what you need. Just look at the existing one. 
+(There is no documentation yet about the api :( )
+
+You may send me your backend :)
+
+There is one script that makes the validation executed by pam_exec.so and the
+some script handles the user data management.
+
+For usage syntax please see INSTALL and use
+
+# motpy -h
+
+The user can modify his/her own pin and secret or offset data. But if there is
+already one set then the user have to authenticate agains it first.
+
+
+== Where are data stored? ==
+
+See the backend's README.
+
+== Are the data stored as plain text? ==
+
+No. The motpy encrypt symmetrically with AES the pins and secrets. Look at the 
+source code.

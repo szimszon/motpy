@@ -16,10 +16,10 @@ class userInfo( object ):
 		try:
 			cdir = self.config.get( 'homedir', 'dir' )
 		except:
-			cdir = os.path.join( '.config', 'motp' )
+			cdir = os.path.join( '.config', 'motpy' )
 		self.motp_dir = os.path.join( getpwnam( self.username ).pw_dir, cdir )
 		self.lastotp_file = os.path.join( self.motp_dir, 'lastotp.pickle' )
-		self.db_file = os.path.join( self.motp_dir, 'motp.pickle' )
+		self.db_file = os.path.join( self.motp_dir, 'motpy.pickle' )
 
 
 	def isValidDbForUser( self ):

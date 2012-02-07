@@ -1,0 +1,21 @@
++----------------------------------------+
+| MOTP http://motp.sourceforge.net/      |
+|                                        |
+| pam_exec.so a python solution by       |
+|   szimszon at oregpreshaz.eu           |
+| web: https://github.com/szimszon/motpy |
++----------------------------------------+
+
+NO WARRANTY! I'm not a security expert! 
+
+License: http://www.gnu.org/licenses/gpl-3.0.txt
+
+= homedir backend =
+
+It stores the pins and secrets and offsets of user data in the users home
+directory. 
+
+Default is ~/.config/motpy
+
+The data is stored in python pickle format.
+The files and directoy is accessible only to the user.

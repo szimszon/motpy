@@ -1,0 +1,8 @@
+Name: MOTP authentication
+Default: yes
+Priority: 128
+Auth-Type: Primary
+Auth:
+        [success=end default=ignore]    pam_exec.so expose_authtok /usr/local/sbin/motpy
+Auth-Initial:
+        [success=end default=ignore]    pam_exec.so expose_authtok /usr/local/sbin/motpy

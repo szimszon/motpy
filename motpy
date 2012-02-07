@@ -20,7 +20,7 @@ class config( object ):
 		#
 		# config file
 		# ##############################
-		self.config = '/etc/security/motp.conf'
+		self.config = '/etc/security/motpy.conf'
 
 
 		#
