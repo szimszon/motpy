@@ -31,7 +31,7 @@ You can easily create the backend you need. Just look at the existing one.
 You may send me your backend :)
 
 There is one script that makes the validation executed by pam_exec.so and the
-some script handles the user data management.
+same script handles the user data management.
 
 For usage syntax please see INSTALL and use
 
