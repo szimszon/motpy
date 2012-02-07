@@ -13,6 +13,12 @@ License: http://www.gnu.org/licenses/gpl-3.0.txt
 
 = Installation =
 
+== Pre-requirements ==
+
+Install python-crypto.
+
+# apt-get install python-crypto
+
 == Get the code ==
 
 You could clone the git repo:
