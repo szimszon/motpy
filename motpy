@@ -221,10 +221,11 @@ class validateMotp( object ):
 		self.config = config
 		self.log = self.config.log
 		self.backend = self.config.backend
-		self.username = username
 		self.otp = otp
-		self.log.debug( 'username: [%s]' % self.username, 5 )
+		self.log.debug( 'username: [%s]' % username, 5 )
 		self.crypt = crypt( self.config.salt )
+		self.username = username
+		self.eusername = self.crypt.encrypt( username )
 
 		#
 		# Import backend
@@ -240,7 +241,7 @@ class validateMotp( object ):
 
 
 		try:
-			self.ui = userInfo( self.config, self.username )
+			self.ui = userInfo( self.config, self.username, self.eusername )
 		except:
 			import traceback
 			self.log.log( "ERR: Can't find userInfo object! Traceback: %s" % ( 
@@ -269,8 +270,9 @@ class validateMotp( object ):
 		# Calculate time window
 		# ######################
 		import datetime
+		ui_offset = int( self.crypt.decrypt( userinfo['offset'] ) )
 		timefrom = int( ( datetime.datetime.now() + \
-				datetime.timedelta( seconds = userinfo['offset'] * 60 * 60 ) - \
+				datetime.timedelta( seconds = ui_offset * 60 * 60 ) - \
 				datetime.timedelta( seconds = self.config.timemargin * 60 ) ).strftime( '%s' )[:-1] )
 		totime = int( timefrom ) + ( self.config.timemargin * 2 * 6 )
 
@@ -320,8 +322,10 @@ class setupUserInfo( object ):
 		self.log = self.config.log
 		self.log.debug( 'DEBUG: setupUserInfo', 4 )
 		self.backend = self.config.backend
-		self.username = username
+		self.log.debug( 'username: [%s]' % username, 5 )
 		self.crypt = crypt( self.config.salt )
+		self.username = username
+		self.eusername = self.crypt.encrypt( username )
 
 
 
@@ -339,7 +343,7 @@ class setupUserInfo( object ):
 			print str( traceback.format_exc() )
 			sys.exit( 10 )
 
-		self.ui = userInfo( self.config, self.username )
+		self.ui = userInfo( self.config, self.username, self.eusername )
 
 		#
 		# Check if there is an existing db for the user
@@ -405,7 +409,7 @@ class setupUserInfo( object ):
 			if len( offset ) == 0:
 				offset = None
 			else:
-				offset = int( offset )
+				offset = self.crypt.encrypt( str( int( offset ) ) )
 		except:
 			print( 'Only decimal numbers!' )
 			sys.exit( 15 )

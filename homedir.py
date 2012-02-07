@@ -4,10 +4,11 @@ class userInfo( object ):
 	'''
 		userInfo class to get and set info or set last matched otp
 	'''
-	def __init__( self, config, username ):
+	def __init__( self, config, username, eusername ):
 		self.config = config
 		self.log = self.config.log
 		self.username = username
+		self.eusername = eusername
 		from pwd import getpwnam
 		self.userid = getpwnam( self.username ).pw_uid
 		from grp import getgrnam
@@ -67,7 +68,7 @@ class userInfo( object ):
 		'''
 
 		return True
-	def getLastOtps( self ):
+	def getAllLastOtps( self ):
 		'''
 			Return the list of saved Otps or None if something went wrong
 		'''
@@ -85,14 +86,29 @@ class userInfo( object ):
 		import cPickle
 		try:
 			flastotp = open( self.lastotp_file, 'rb' )
-			picklelastotp = list( cPickle.load( flastotp ) )
+			picklelastotp = dict( cPickle.load( flastotp ) )
 			flastotp.close()
 		except:
 			import traceback
 			self.log.log( 'ERR: Something went wrong with lastotp: %s' % str( traceback.format_exc() ) )
 			return None
 		self.log.debug( 'DEBUG: picklelastotp: [[%s]]' % str( picklelastotp ), 10 )
-		return list( picklelastotp )
+		return dict( picklelastotp )
+
+	def getLastOtps( self ):
+		'''
+			Get the last valid otps for the user
+		'''
+		lastotps = self.getAllLastOtps()
+		if not lastotps:
+			return None
+		try:
+			ret = list( lastotps[self.eusername] )
+		except:
+			ret = list()
+		return ret
+
+
 
 	def getAllInfo( self ):
 		'''
@@ -121,7 +137,7 @@ class userInfo( object ):
 			get all info dict
 		'''
 		try:
-			userinfo = dict( self.getAllInfo()[self.username] )
+			userinfo = dict( self.getAllInfo()[self.eusername] )
 		except:
 			return dict( pin = None,
 								secret = None,
@@ -132,16 +148,16 @@ class userInfo( object ):
 		'''
 			store the matched otp that it can't be used next
 		'''
-		lastotp = self.getLastOtps()
+		lastotp = self.getAllLastOtps()
 		self.log.debug( 'DEBUG: before lastotp: [[%s]] otp: <%s>' % ( str( lastotp ),
 																																str( otp ) ), 10 )
 		if not lastotp:
-			lastotp	 = list()
-		else:
-			lastotp = list( lastotp )
+			lastotp	 = dict()
 
-		lastotp.insert( 0, otp )
-		lastotp = lastotp[:10]
+		if not lastotp.has_key( self.eusername ):
+			lastotp[self.eusername] = list()
+		lastotp[self.eusername].insert( 0, otp )
+		lastotp[self.eusername] = lastotp[self.eusername][:10]
 		self.log.debug( 'DEBUG: after lastotp: [[%s]]' % str( lastotp ), 10 )
 
 		import cPickle
@@ -231,20 +247,20 @@ class userInfo( object ):
 			alluserinfo = dict( self.getAllInfo() )
 		except:
 			return False
-		if not alluserinfo.has_key( self.username ):
-			alluserinfo[self.username] = dict( offset = 0 )
+		if not alluserinfo.has_key( self.eusername ):
+			alluserinfo[self.eusername] = dict( offset = 0 )
 		try:
 			if not secret:
-				secret = alluserinfo[self.username]['secret']
+				secret = alluserinfo[self.eusername]['secret']
 		except:
 			self.log.log( "ERR: No secret is set for the account!" )
 			return False
 		if not offset:
-			offset = alluserinfo[self.username]['offset']
+			offset = alluserinfo[self.eusername]['offset']
 		#
 		# Replace with new motp database
 		# ###############################
-		alluserinfo[self.username] = dict( pin = pin,
+		alluserinfo[self.eusername] = dict( pin = pin,
 																	secret = secret,
 																	offset = offset )
 		import cPickle

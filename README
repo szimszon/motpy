@@ -47,5 +47,5 @@ See the backend's README.
 
 == Are the data stored as plain text? ==
 
-No. The motpy encrypt symmetrically with AES the pins and secrets. Look at the 
-source code.
+No. The motpy encrypt symmetrically with AES the pins and secrets offsets and
+usernames. Look at the source code.
