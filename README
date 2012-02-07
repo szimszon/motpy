@@ -1,7 +1,8 @@
 +----------------------------------------+
 | MOTP http://motp.sourceforge.net/      |
 |                                        |
-| pam_exec.so a python solution by       |
+| motpy for pam_exec.so a python solution|
+| by                                     |
 |   szimszon at oregpreshaz.eu           |
 | web: https://github.com/szimszon/motpy |
 +----------------------------------------+
