@@ -174,7 +174,7 @@ class log( object ):
 	def log( self, msg ):
 		try:
 			import syslog
-			syslog.openlog( facility = syslog.LOG_AUTH )
+			syslog.openlog( 'motpy', 0, syslog.LOG_AUTH )
 			syslog.syslog( msg )
 			syslog.closelog()
 		except:
@@ -183,10 +183,12 @@ class log( object ):
 		if int( self.debug_level ) >= int( weight ):
 			try:
 				import syslog
-				syslog.openlog( facility = syslog.LOG_AUTH )
+				syslog.openlog( 'motpy', 0, syslog.LOG_AUTH )
 				syslog.syslog( 'DEBUG: %s' % str( msg ) )
 				syslog.closelog()
 			except:
+				import traceback
+				print( 'Something is wrong with the syslog: %s' % str( traceback.format_exc() ) )
 				print( 'DEBUG: %s' % str( msg ) )
 
 class crypt( object ):
