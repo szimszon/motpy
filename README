@@ -20,6 +20,9 @@ systems.
 
 == How is it work? ==
 
+It works based on Mobile One Time Password. 
+  Look at http://motp.sourceforge.net/#1
+
 motpy is a skeleton script which do the OTP validating and provides a solution
 for user information management.
 
@@ -41,7 +44,9 @@ For usage syntax please see INSTALL and use
 The user can modify his/her own pin and secret or offset data. But if there is
 already one set then the user have to authenticate agains it first.
 
-
+You should find clients for generating OTPs at
+  http://motp.sourceforge.net/
+  
 == Where are data stored? ==
 
 See the backend's README.
