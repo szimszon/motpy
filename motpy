@@ -1,6 +1,19 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*- 
 
+def node( log ):
+	'''
+		provide the hostname
+	'''
+	try:
+		import platform
+		return str( platform.node() )
+	except:
+		import traceback
+		log.debug( 'Something went wrong with platform.node(): %s' %
+										str( traceback.format_exc() ) )
+		return None
+
 class config( object ):
 	'''
 		Config object
@@ -27,6 +40,14 @@ class config( object ):
 		# salt (16,24 or 32 byte long)
 		# ##############################
 		self.salt = 'change........it'
+
+
+		#
+		# hostname
+		# ##############################
+		self.hostname = node( self.log )
+
+
 
 		#
 		# debug
@@ -77,6 +98,10 @@ class config( object ):
 										action = 'store_true',
 										dest = "set",
 										help = "set the pin and secret and offset" )
+		parser.add_option( "-n", "--hostname",
+										action = 'store',
+										dest = "hostname",
+										help = "set the hostname" )
 		parser.add_option( "-d", "--debug",
 										action = 'store',
 										type = 'int',
@@ -119,6 +144,10 @@ class config( object ):
 				self.secretlenght = int( self.configfile.get( 'main', 'secretlenght' ) )
 			except:
 				pass
+			try:
+				self.hostname = int( self.configfile.get( 'main', 'hostname' ) )
+			except:
+				pass
 		except:
 			import traceback
 			self.log.log( 'ERR: Something is wrong with configfile: %s Traceback: %s' % ( 
@@ -136,6 +165,8 @@ class config( object ):
 			self.timemargin = self.cloptions.timemargin
 		if self.cloptions.salt:
 			self.salt = self.cloptions.salt
+		if self.cloptions.hostname:
+			self.hostname = self.cloptions.hostname
 		if self.cloptions.set:
 			import os
 			if len( self.clargs ) > 0:
@@ -162,6 +193,40 @@ class config( object ):
 			Expose the config file parser get to the backend
 		'''
 		return self.configfile.get( section, option )
+
+class userinfostore( object ):
+	def __init__( self, config ):
+		'''
+			store all the user info, like username, encoded username,
+			hostname, encoded hostname, given otp
+		'''
+		self.config = config
+		self.username = None
+		self.eusername = None
+		self.hostname = None
+		self.ehostname = None
+		self.otp = None
+		self.crypt = crypt( self.config.salt )
+	def set_username( self, username ):
+		self.username = username
+		self.eusername = self.crypt.encrypt( username )
+	def set_hostname( self, hostname ):
+		self.hostname = hostname
+		self.ehostname = self.crypt.encrypt( hostname )
+	def set_otp( self, otp ):
+		self.otp = otp
+
+	def get_username( self ):
+		return str( self.username )
+	def get_eusername( self ):
+		return str( self.eusername )
+	def get_hostname( self ):
+		return str( self.hostname )
+	def get_ehostname( self ):
+		return str( self.ehostname )
+	def get_otp( self ):
+		return str( self.otp )
+
 
 class log( object ):
 	'''
@@ -223,11 +288,14 @@ class validateMotp( object ):
 		self.config = config
 		self.log = self.config.log
 		self.backend = self.config.backend
+		self.userinfostore = userinfostore( self.config )
 		self.otp = otp
-		self.log.debug( 'username: [%s]' % username, 5 )
+		self.userinfostore.set_otp( otp )
 		self.crypt = crypt( self.config.salt )
+		self.userinfostore.set_username( username )
+		self.userinfostore.set_hostname( self.config.hostname )
 		self.username = username
-		self.eusername = self.crypt.encrypt( username )
+		self.eusername = self.userinfostore.get_eusername()
 
 		#
 		# Import backend
@@ -243,7 +311,7 @@ class validateMotp( object ):
 
 
 		try:
-			self.ui = userInfo( self.config, self.username, self.eusername )
+			self.ui = userInfo( self.config, self.userinfostore )
 		except:
 			import traceback
 			self.log.log( "ERR: Can't find userInfo object! Traceback: %s" % ( 
@@ -322,12 +390,13 @@ class setupUserInfo( object ):
 		'''
 		self.config = config
 		self.log = self.config.log
-		self.log.debug( 'DEBUG: setupUserInfo', 4 )
 		self.backend = self.config.backend
-		self.log.debug( 'username: [%s]' % username, 5 )
+		self.userinfostore = userinfostore( self.config )
 		self.crypt = crypt( self.config.salt )
 		self.username = username
-		self.eusername = self.crypt.encrypt( username )
+		self.userinfostore.set_username( username )
+		self.userinfostore.set_hostname( self.config.hostname )
+		self.eusername = self.userinfostore.get_eusername()
 
 
 
@@ -345,7 +414,7 @@ class setupUserInfo( object ):
 			print str( traceback.format_exc() )
 			sys.exit( 10 )
 
-		self.ui = userInfo( self.config, self.username, self.eusername )
+		self.ui = userInfo( self.config, self.userinfostore )
 
 		#
 		# Check if there is an existing db for the user

@@ -4,11 +4,11 @@ class userInfo( object ):
 	'''
 		userInfo class to get and set info or set last matched otp
 	'''
-	def __init__( self, config, username, eusername ):
+	def __init__( self, config, userinfostore ):
 		self.config = config
 		self.log = self.config.log
-		self.username = username
-		self.eusername = eusername
+		self.username = userinfostore.get_username()
+		self.eusername = userinfostore.get_eusername()
 		from pwd import getpwnam
 		self.userid = getpwnam( self.username ).pw_uid
 		from grp import getgrnam
