@@ -314,8 +314,8 @@ class validateMotp( object ):
 			self.ui = userInfo( self.config, self.userinfostore )
 		except:
 			import traceback
-			self.log.log( "ERR: Can't find userInfo object! Traceback: %s" % ( 
-																								str( traceback.format_exc() ) ) )
+			self.log.debug( "ERR: Can't make userInfo object! Traceback: %s" % ( 
+																								str( traceback.format_exc() ) ), 1 )
 			sys.exit( 12 )
 
 
@@ -413,8 +413,13 @@ class setupUserInfo( object ):
 																								str( traceback.format_exc() ) ) )
 			print str( traceback.format_exc() )
 			sys.exit( 10 )
-
-		self.ui = userInfo( self.config, self.userinfostore )
+		try:
+			self.ui = userInfo( self.config, self.userinfostore )
+		except:
+			import traceback
+			self.log.debug( "ERR: Can't make userInfo object! Traceback: %s" % ( 
+																								str( traceback.format_exc() ) ), 1 )
+			sys.exit( 12 )
 
 		#
 		# Check if there is an existing db for the user
