@@ -9,10 +9,17 @@ class userInfo( object ):
 		self.log = self.config.log
 		self.username = userinfostore.get_username()
 		self.eusername = userinfostore.get_eusername()
-		from pwd import getpwnam
-		self.userid = getpwnam( self.username ).pw_uid
-		from grp import getgrnam
-		self.groupid = getgrnam( self.username ).gr_gid
+		try:
+			from pwd import getpwnam
+			self.userid = getpwnam( self.username ).pw_uid
+			from grp import getgrnam
+			self.groupid = getgrnam( self.username ).gr_gid
+		except:
+			import traceback
+			import sys
+			self.log.debug( 'There is no userid or groupid! Traceback: %s' % ( 
+																					str( traceback.format_exc() ) ), 1 )
+			sys.exit( 50 )
 		import os
 		try:
 			cdir = self.config.get( 'homedir', 'dir' )
