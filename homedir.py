@@ -7,27 +7,44 @@ class userInfo( object ):
 	def __init__( self, config, userinfostore ):
 		self.config = config
 		self.log = self.config.log
+		self.valid = True
 		self.username = userinfostore.get_username()
 		self.eusername = userinfostore.get_eusername()
 		try:
 			from pwd import getpwnam
 			self.userid = getpwnam( self.username ).pw_uid
+		except:
+			import traceback
+			self.log.debug( 'There is no userid! Traceback: %s' % ( 
+																					str( traceback.format_exc() ) ), 1 )
+			self.userid = None
+			self.valid = False
+		try:
 			from grp import getgrnam
 			self.groupid = getgrnam( self.username ).gr_gid
 		except:
 			import traceback
-			import sys
-			self.log.debug( 'There is no userid or groupid! Traceback: %s' % ( 
+			self.log.debug( 'There is no groupid! Traceback: %s' % ( 
 																					str( traceback.format_exc() ) ), 1 )
-			sys.exit( 50 )
+			self.groupid = None
+			self.valid = False
 		import os
 		try:
 			cdir = self.config.get( 'homedir', 'dir' )
 		except:
 			cdir = os.path.join( '.config', 'motpy' )
-		self.motp_dir = os.path.join( getpwnam( self.username ).pw_dir, cdir )
-		self.lastotp_file = os.path.join( self.motp_dir, 'lastotp.pickle' )
-		self.db_file = os.path.join( self.motp_dir, 'motpy.pickle' )
+		try:
+			self.motp_dir = os.path.join( getpwnam( self.username ).pw_dir, cdir )
+			self.lastotp_file = os.path.join( self.motp_dir, 'lastotp.pickle' )
+			self.db_file = os.path.join( self.motp_dir, 'motpy.pickle' )
+		except:
+			import traceback
+			self.log.debug( 'There is no userdata dir! Traceback: %s' % ( 
+																					str( traceback.format_exc() ) ), 1 )
+			self.motp_dir = None
+			self.lastopt_file = None
+			self.db_file = None
+			self.valid = False
 
 
 	def isValidDbForUser( self ):
@@ -35,6 +52,8 @@ class userInfo( object ):
 			Return true if there is a motp set already
 		'''
 		import os
+		if not self.valid:
+			return False
 		if os.access( self.db_file, os.R_OK ):
 			return True
 		return False
@@ -69,18 +88,14 @@ class userInfo( object ):
 			ret = False
 		return ret
 
-	def setPath( self, path ):
-		'''
-			Make and set path and owner and rights
-		'''
 
-		return True
 	def getAllLastOtps( self ):
 		'''
 			Return the list of saved Otps or None if something went wrong
 		'''
 
-
+		if not self.valid:
+			return None
 		#
 		# Pre checkings - path
 		# #####################
@@ -125,6 +140,8 @@ class userInfo( object ):
 		#
 		# Pre checkings - path
 		# #####################
+		if not self.valid:
+			return None
 		if not self.checkPath( self.motp_dir ) or not self.checkPath( self.db_file ):
 			return None
 
@@ -158,6 +175,8 @@ class userInfo( object ):
 		lastotp = self.getAllLastOtps()
 		self.log.debug( 'DEBUG: before lastotp: [[%s]] otp: <%s>' % ( str( lastotp ),
 																																str( otp ) ), 10 )
+		if not self.valid:
+			return None
 		if not lastotp:
 			lastotp	 = dict()
 
@@ -186,6 +205,9 @@ class userInfo( object ):
 			set the userinfo
 		'''
 		import os
+
+		if not self.valid:
+			return False
 
 		#
 		# Check or create motp config dir
