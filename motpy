@@ -79,7 +79,8 @@ class config( object ):
 		# optparse
 		# #########
 		from optparse import OptionParser
-		parser = OptionParser()
+		usage = "usage: %prog [options] [username]"
+		parser = OptionParser( usage = usage )
 		parser.add_option( "-c", "--config",
 										action = 'store',
 										type = 'string',
