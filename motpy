@@ -390,6 +390,7 @@ class setupUserInfo( object ):
 		'''
 			Set up the user pin, secret and offset
 		'''
+		import sys
 		self.config = config
 		self.log = self.config.log
 		self.backend = self.config.backend
@@ -409,7 +410,6 @@ class setupUserInfo( object ):
 			exec( 'from %s import userInfo' % self.backend )
 		except:
 			import traceback
-			import sys
 			self.log.log( "ERR: Can't load the %s backend! Traceback: %s" % ( 
 																								str( self.backend ),
 																								str( traceback.format_exc() ) ) )
