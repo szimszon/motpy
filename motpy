@@ -60,6 +60,12 @@ class config( object ):
 		self.set = False
 
 		#
+		# auth the user
+		# #####################
+		self.auth = True
+
+
+		#
 		# pinlenght - the lenght of the pin code
 		# ##########
 		self.pinlenght = 4
@@ -98,6 +104,10 @@ class config( object ):
 										action = 'store_true',
 										dest = "set",
 										help = "set the pin and secret and offset" )
+		parser.add_option( "-a", "--auth",
+										action = 'store_true',
+										dest = "auth",
+										help = "do authentication (default)" )
 		parser.add_option( "-n", "--hostname",
 										action = 'store',
 										dest = "hostname",
@@ -169,11 +179,47 @@ class config( object ):
 			self.hostname = self.cloptions.hostname
 		if self.cloptions.set:
 			import os
+			self.set = True
+			self.auth = False
 			if len( self.clargs ) > 0:
-				self.set = self.clargs[0]
+				#
+				# Find username in args
+				# ######################
+				self.setusername = self.clargs[0]
 			else:
-				import getpass
-				self.set = getpass.getuser()
+				try:
+					#
+					# Find username in PAM_USER
+					# ##########################
+					self.setusername = os.environ['PAM_USER']
+				except:
+					#
+					# Find username in getuser()
+					# ###########################
+					try:
+						import getpass
+						self.setusername = getpass.getuser()
+					except:
+						import traceback
+						self.log.log( "Can't get username. Traceback: %s" % ( 
+																					str( traceback.format_exc() ) ) )
+		else:
+			import os
+			if len( self.clargs ) > 0:
+				#
+				# Find username in args
+				# ######################
+				self.authusername = self.clargs[0]
+			else:
+				try:
+					#
+					# Find username in PAM_USER
+					# ##########################
+					self.authusername = os.environ['PAM_USER']
+				except:
+					self.log.log( 'PAM_USER environment variable is not set!' )
+					self.authusername = None
+
 		if self.cloptions.debug:
 			self.debug = self.cloptions.debug
 
@@ -318,7 +364,7 @@ class validateMotp( object ):
 																								str( traceback.format_exc() ) ), 1 )
 			sys.exit( 12 )
 		if not self.ui.valid:
-			sys.exit( 13 )
+			sys.exit( 17 )
 
 
 
@@ -423,7 +469,7 @@ class setupUserInfo( object ):
 																								str( traceback.format_exc() ) ), 1 )
 			sys.exit( 12 )
 		if not self.ui.valid:
-			sys.exit( 13 )
+			sys.exit( 17 )
 
 		#
 		# Check if there is an existing db for the user
@@ -436,7 +482,7 @@ class setupUserInfo( object ):
 			if self.ui.isValidDbForUser():
 				import getpass
 				votp = getpass.getpass( 'MOTP: ' )
-				if not validateMotp( cfg, vusername, votp ).validate():
+				if not validateMotp( cfg, username, votp ).validate():
 					print( 'MOTP not valid!' )
 					import sys
 					sys.exit( 13 )
@@ -483,7 +529,7 @@ class setupUserInfo( object ):
 		#
 		# Get the time offset - empty -- not changed
 		# ###########################################
-		print( 'Time offset in hour:' )
+		print( 'Time offset in hour (leave empty if not changed):' )
 		try:
 			offset = str( sys.stdin.readline() )[:-1]
 			if len( offset ) == 0:
@@ -518,12 +564,9 @@ if __name__ == '__main__':
 		#
 		# We are authenticating
 		# ######################
-		try:
-			import os
-			vusername = os.environ['PAM_USER']
-			log.debug( 'Username: [%s]' % vusername, 5 )
-		except KeyError:
-			log.log( 'PAM_USER environment variable is not set!' )
+		vusername = cfg.authusername
+		log.debug( 'Username: [%s]' % vusername, 5 )
+		if not vusername:
 			sys.exit( 11 )
 		votp = sys.stdin.readline()[:-1]
 		log.debug( 'OTP: [%s]' % votp, 5 )
@@ -546,6 +589,4 @@ if __name__ == '__main__':
 		#
 		# We are setting the user auth info
 		# ##################################
-		import os
-		vusername = cfg.set
-		setupUserInfo( cfg, vusername ).setInfo()
+		setupUserInfo( cfg, cfg.setusername ).setInfo()
