@@ -1,0 +1,96 @@
++----------------MOTPY-------------------+
+| MOTP http://motp.sourceforge.net/      |
+|                                        |
+| motpy for pam_exec.so a python solution|
+| by                                     |
+|   szimszon at oregpreshaz.eu           |
+| web: https://github.com/szimszon/motpy |
++----------------------------------------+
+
+NO WARRANTY! I'm not a security expert!
+
+License: http://www.gnu.org/licenses/gpl-3.0.txt
+
+= Backend Api =
+
+class userInfo( object ):
+	'''
+		config - class
+					self.log - class
+							self.log( msg ) - log the msg to syslog auth
+							self.debug( msg, debug_level ) - log the msg to
+								syslog auth if config.debug is greater or
+								equal to debug_level
+					self.timemargin - motp validity time window in minute
+					self.backend - backend name
+					self.config - configfile
+					self.salt - AES symmetric key
+					self.hostname - hostname
+					self.debug - debug level (log class)
+					self.set - if true then we set the user data and not validate
+					self.auth - if true then we validate and not set the user data
+					self.pinlenght - pin lenght
+					self.secretlenght - secret lenght
+			
+		userinfostore - class
+					self.set_username( username ) - set the username and
+						encrypted username
+					self.set_hostname( hostname ) - set the hostname and
+						encrypted hostname
+					self.set_otp( otp ) - set the motp
+					string = self.get_username() - get the username
+					string = self.get_eusername() - get the encrypted username
+					string = self.get_hostname() - get the hostname
+					string = self.get_ehostname() - get the encrypted hostname
+					string = self.get_otp() - get the motp
+	'''
+	def __init__( self, config, userinfostore ):
+		pass
+	
+	
+	
+	def isValidDbForUser( self ):
+		'''
+			Return true if there is a motp data in db for the user
+		'''
+		return Boolean
+		
+		
+	def getLastOtps( self ):
+		'''
+			Get the last valid otps for the user from the db
+		'''
+		return List
+		
+		
+		
+	def getInfo( self ):
+		'''
+			get all user info in dict from db
+		'''
+		return dict( pin = UserPin,
+					secret = UserSecret,
+					offset = UserOffset )
+					
+					
+					
+	def setLastOtp( self, otp ):
+		'''
+			store the validated otp that it can't be used next time in db
+			this is the otp the user is last authenticated with
+		'''
+		return Boolean - true if successful
+		
+		
+	def setUserInfo( self, pin, secret = None, offset = None ):
+		'''
+			store the userinfo to the db
+			if secret is None then it's not changed
+			if offset is None then it's not changed
+		'''
+		return Boolean - true if successful
+		
+		
+
+
+That's it.

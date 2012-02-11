@@ -30,7 +30,7 @@ motpy imports a backend python module to get and store the user informations to
 do the OTP validation.
 
 You can easily create the backend you need. Just look at the existing one. 
-(There is no documentation yet about the api :( )
+See README-backend_api.
 
 You may send me your backend :)
 
