@@ -1,0 +1,23 @@
++----------------MOTPY-------------------+
+| MOTP http://motp.sourceforge.net/      |
+|                                        |
+| motpy for pam_exec.so a python solution|
+| by                                     |
+|   szimszon at oregpreshaz.eu           |
+| web: https://github.com/szimszon/motpy |
++----------------------------------------+
+
+= How to retrieve pickled data =
+
+If data is in "motpy.pickle" and salt is "salt" and the host we search for
+is the first item then
+
+$ python
+>>> import cPickle
+>>> pickled_data=cPickle.load(open('motpy.pickle'))
+>>> from Crypto.Cipher import AES
+>>> encobj = AES.new( 'salt', AES.MODE_CFB )
+>>> encobj.decrypt( x[x.keys()[0]]['pin'] )
+>>> encobj = AES.new( 'salt', AES.MODE_CFB )
+>>> encobj.decrypt( x[x.keys()[0]]['secret'] )
+
