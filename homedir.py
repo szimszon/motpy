@@ -11,6 +11,7 @@ class userInfo(object):
         self.valid = True
         self.username = userinfostore.get_username()
         self.eusername = userinfostore.get_eusername()
+        self.decrypt = userinfostore.crypt.decrypt
         try:
             from pwd import getpwnam
             self.userid = getpwnam(self.username).pw_uid
@@ -122,8 +123,12 @@ class userInfo(object):
         lastotps = self.getAllLastOtps()
         if not lastotps:
             return None
+        ret = list()
         try:
-            ret = list(lastotps[self.eusername])
+            for i in lastotps.keys():
+                if self.decrypt(i) == self.username:
+                    ret = list(lastotps[i])
+                    break
         except:
             ret = list()
         return ret
@@ -158,9 +163,18 @@ class userInfo(object):
         '''
             get all info dict
         '''
+        userinfo = dict(pin=None,
+                        secret=None,
+                        offset=None)
+        allinfo = self.getAllInfo()
         try:
-            userinfo = dict(self.getAllInfo()[self.eusername])
+            for i in allinfo.keys():
+                if self.decrypt(i):
+                    userinfo = dict(allinfo[i])
+                    break
         except:
+            import traceback
+            print traceback.format_exc()
             return dict(pin=None,
                                 secret=None,
                                 offset=None)
@@ -179,10 +193,16 @@ class userInfo(object):
         if not lastotp:
             lastotp = dict()
 
-        if not self.eusername in lastotp:
+        username_in_lastopt = None
+        for i in lastotp:
+            if self.decrypt(i) == self.username:
+                username_in_lastopt = i
+                break
+        if not username_in_lastopt:
             lastotp[self.eusername] = list()
-        lastotp[self.eusername].insert(0, otp)
-        lastotp[self.eusername] = lastotp[self.eusername][:10]
+            username_in_lastopt = self.eusername
+        lastotp[username_in_lastopt].insert(0, otp)
+        lastotp[username_in_lastopt] = lastotp[username_in_lastopt][:10]
         self.log.debug('DEBUG: after lastotp: [[%s]]' % str(lastotp), 10)
 
         import cPickle
@@ -292,20 +312,27 @@ class userInfo(object):
             alluserinfo = dict(self.getAllInfo())
         except:
             return False
-        if not self.eusername in alluserinfo:
-            alluserinfo[self.eusername] = dict(offset=0)
+        username_in_alluserinfo = None
+        for i in alluserinfo.keys():
+            if self.decrypt(i) == self.username:
+                username_in_alluserinfo = i
+                break
+
+        if not username_in_alluserinfo:
+            username_in_alluserinfo = self.eusername
+            alluserinfo[username_in_alluserinfo] = dict(offset=0)
         try:
             if not secret:
-                secret = alluserinfo[self.eusername]['secret']
+                secret = alluserinfo[username_in_alluserinfo]['secret']
         except:
             self.log.log("ERR: No secret is set for the account!")
             return False
         if not offset:
-            offset = alluserinfo[self.eusername]['offset']
+            offset = alluserinfo[username_in_alluserinfo]['offset']
         #
         # Replace with new motp database
         # ###############################
-        alluserinfo[self.eusername] = dict(pin=pin,
+        alluserinfo[username_in_alluserinfo] = dict(pin=pin,
                                            secret=secret,
                                            offset=offset)
         import cPickle

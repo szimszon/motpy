@@ -77,7 +77,8 @@ class config(object):
         # #########
         from optparse import OptionParser
         usage = "usage: %prog [options] [username]"
-        parser = OptionParser(usage=usage)
+        parser = OptionParser(usage=usage,
+                              version='%prog v.0.2')
         parser.add_option("-c", "--config",
                                         action='store',
                                         type='string',
@@ -249,7 +250,7 @@ class userinfostore(object):
         self.hostname = None
         self.ehostname = None
         self.otp = None
-        self.crypt = crypt(self.config.salt)
+        self.crypt = crypt(self.config)
 
     def set_username(self, username):
         self.username = username
@@ -312,21 +313,49 @@ class log(object):
 
 
 class crypt(object):
-    def __init__(self, secret):
+    def __init__(self, config):
         #
         # Based on http://www.turnkeylinux.org/blog/python-symmetric-encryption
         # ############################
-        self.secret = secret
+        self.secret = config.salt
+        self.log = config.log
+        self.crypt_version = '{2}'
 
     def encrypt(self, plaintext):
         from Crypto.Cipher import AES
-        encobj = AES.new(self.secret, AES.MODE_CFB)
-        ciphertext = encobj.encrypt(plaintext)
+        from Crypto import Random
+        iv = Random.new().read(AES.block_size)
+        encobj = AES.new(self.secret, AES.MODE_CFB, iv)
+        ciphertext = '%s{%s}%s' % (
+                            self.crypt_version,
+                            iv,
+                            encobj.encrypt(plaintext))
         return ciphertext
 
     def decrypt(self, ciphertext):
+        import re
+        re_code = re.compile(
+            "^\{(?P<version>\d+)\}\{(?P<iv>[^}]+)\}(?P<chipertext>.*)$")
         from Crypto.Cipher import AES
-        encobj = AES.new(self.secret, AES.MODE_CFB)
+        c = re_code.search(ciphertext)
+        if c:
+            code_version = c.group('version')
+            iv = c.group('iv')
+            ciphertext = c.group('chipertext')
+        else:
+            code_version = '1'
+            iv = self.secret
+            ciphertext = ciphertext
+        if code_version == '1':
+            try:
+                encobj = AES.new(self.secret, AES.MODE_CFB)
+            except:
+                encobj = AES.new(self.secret, AES.MODE_CFB, iv)
+        elif code_version == '2':
+            encobj = AES.new(self.secret, AES.MODE_CFB, iv)
+        else:
+            self.log.log('Unknown chipertext version')
+            sys.exit(10)
         plaintext = encobj.decrypt(ciphertext)
         return plaintext
 
@@ -344,7 +373,7 @@ class validateMotp(object):
         self.userinfostore = userinfostore(self.config)
         self.otp = otp
         self.userinfostore.set_otp(otp)
-        self.crypt = crypt(self.config.salt)
+        self.crypt = crypt(self.config)
         self.userinfostore.set_username(username)
         self.userinfostore.set_hostname(self.config.hostname)
         self.username = username
@@ -402,8 +431,9 @@ class validateMotp(object):
         self.log.debug('lastotps: %s' % str(lastotps), 10)
         if lastotps:
             if lastotps.count(self.otp):
-                self.log.log('%s user authentication for MOTP failed ' + \
-                            'because already used valid MOTP!' % self.username)
+                self.log.log('%s user authentication for MOTP failed ' % \
+                             self.username + \
+                            'because already used valid MOTP!')
                 return False
 
         #
@@ -440,7 +470,7 @@ class setupUserInfo(object):
         self.log = self.config.log
         self.backend = self.config.backend
         self.userinfostore = userinfostore(self.config)
-        self.crypt = crypt(self.config.salt)
+        self.crypt = crypt(self.config)
         self.username = username
         self.userinfostore.set_username(username)
         self.userinfostore.set_hostname(self.config.hostname)
