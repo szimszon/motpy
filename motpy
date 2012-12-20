@@ -333,10 +333,11 @@ class crypt(object):
         return ciphertext
 
     def decrypt(self, ciphertext):
+        from Crypto.Cipher import AES
         import re
         re_code = re.compile(
-            "^\{(?P<version>\d+)\}\{(?P<iv>[^}]+)\}(?P<chipertext>.*)$")
-        from Crypto.Cipher import AES
+            "^\{(?P<version>\d+)\}\{(?P<iv>.{" + str(AES.block_size) + \
+            "})\}(?P<chipertext>.*)$")
         c = re_code.search(ciphertext)
         if c:
             code_version = c.group('version')

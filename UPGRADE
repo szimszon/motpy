@@ -1,0 +1,11 @@
++----------------MOTPY-------------------+
+| MOTP http://motp.sourceforge.net/      |
+|                                        |
+| motpy for pam_exec.so a python solution|
+| by                                     |
+|   szimszon at oregpreshaz.eu           |
+| web: https://github.com/szimszon/motpy |
++----------------------------------------+
+
+Don't trust me. If you upgrade you must not close session if you are
+not tested that the new motpy works perfectly!

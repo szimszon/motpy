@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# v.0.2
 
 
 class userInfo(object):
@@ -168,10 +169,11 @@ class userInfo(object):
                         offset=None)
         allinfo = self.getAllInfo()
         try:
-            for i in allinfo.keys():
-                if self.decrypt(i):
-                    userinfo = dict(allinfo[i])
-                    break
+            if allinfo:
+                for i in allinfo.keys():
+                    if self.decrypt(i):
+                        userinfo = dict(allinfo[i])
+                        break
         except:
             import traceback
             print traceback.format_exc()

@@ -12,12 +12,41 @@
 If data is in "motpy.pickle" and salt is "salt" and the host we search for
 is the first item then
 
-$ python
->>> import cPickle
->>> pickled_data=cPickle.load(open('motpy.pickle'))
->>> from Crypto.Cipher import AES
->>> encobj = AES.new( 'salt', AES.MODE_CFB )
->>> encobj.decrypt( x[x.keys()[0]]['pin'] )
->>> encobj = AES.new( 'salt', AES.MODE_CFB )
->>> encobj.decrypt( x[x.keys()[0]]['secret'] )
+--- cut ---
+def decrypt(salt, ciphertext):
+        from Crypto.Cipher import AES
+        import re
+        re_code = re.compile(
+            "^\{(?P<version>\d+)\}\{(?P<iv>.{" + str(AES.block_size) + \
+            "})\}(?P<chipertext>.*)$")
+        c = re_code.search(ciphertext)
+        if c:
+            code_version = c.group('version')
+            iv = c.group('iv')
+            ciphertext = c.group('chipertext')
+        else:
+            code_version = '1'
+            iv = salt
+            ciphertext = ciphertext
+        if code_version == '1':
+            try:
+                encobj = AES.new(salt, AES.MODE_CFB)
+            except:
+                encobj = AES.new(salt, AES.MODE_CFB, iv)
+        elif code_version == '2':
+            encobj = AES.new(salt, AES.MODE_CFB, iv)
+        else:
+            sys.exit(10)
+        plaintext = encobj.decrypt(ciphertext)
+        return plaintext
 
+salt='salt............'
+import cPickle
+pickled_data=cPickle.load(open('motpy.pickle'))
+for x in pickled_data.keys():
+  print 'user  : %s'%decrypt(salt,x)
+  print 'pin   : %s'%decrypt(salt, pickled_data[x]['pin'] )
+  print 'secret: %s'%decrypt(salt, pickled_data[x]['secret'] )
+  print 'offset: %s'%decrypt(salt, pickled_data[x]['offset'] )
+  print '------------------------------'
+--- cut ---
